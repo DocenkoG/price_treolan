@@ -37,7 +37,7 @@ def getXlsxString(sh, i, in_columns_j):
     impValues = {}
     for item in in_columns_j.keys() :
         j = in_columns_j[item]
-        if item in ('закупка','продажа','цена','цена1') :
+        if item in ('закупка','продажа','цена_руб','цена_usd') :
             if getCellXlsx(row=i, col=j, isDigit='N', sheet=sh).find('Call for Pricing') >=0 :
                 impValues[item] = '0.1'
             else :
@@ -116,15 +116,16 @@ def convert_excel2csv(cfg):
 #   for i in range(1, sheet.nrows) :                                     # xls
         i_last = i
         try:
+            ccc = sheet.cell( row=i, column=in_cols_j['группа_'] )
+            if  ccc.font.b == True :                                     # Подгруппа
+                grpName = sheet.cell(row=i, column=in_cols_j['группа_']).value
+                continue
             impValues = getXlsxString(sheet, i, in_cols_j)               # xlsx
             #impValues = getXlsString(sheet, i, in_cols_j)               # xls
             #print( impValues )
             if impValues['код_'] == '' or impValues['код_'] == 'Артикул':# Пустая строка
                 pass
                 #print( 'Пустая строка. i=',i, impValues )
-            elif impValues['цена_руб'] == '' and impValues['цена_usd'] == '' :  # группа
-                grpName = impValues['группа_']
-                continue
             else :                                                       # Обычная строка
                 impValues['группа_'] = grpName;
                 for outColName in out_template.keys() :
@@ -132,14 +133,14 @@ def convert_excel2csv(cfg):
                     for key in impValues.keys():
                         if shablon.find(key) >= 0 :
                             shablon = shablon.replace(key, impValues[key])
-                    if (outColName == 'закупка') and ('*' in shablon) :
-                        p = shablon.find("*")
+                    if (outColName == 'закупка') and ('+' in shablon) :
+                        p = shablon.find("+")
                         vvv1 = float(shablon[:p])
                         vvv2 = float(shablon[p+1:])
-                        shablon = str(round(vvv1 * vvv2, 2))
+                        shablon = str(round(vvv1 + vvv2, 2))
                     recOut[outColName] = shablon.strip()
 
-                if  impValues["цена_usd"] != "" :
+                if  float(impValues["цена_usd"]) > 0.0 :
                     recOut["валюта"] = "USD"
                 else:
                     recOut["валюта"] = "РУБ"

@@ -57,7 +57,7 @@ def getCellXlsx(  row       # номер строки
         else :
 #           ss = '0'
             try:
-                ss = str(float(cellValue.replace(',','.')))
+                ss = str(float(cellValue.replace(',','.').replace(' ','')))
             except ValueError as e:
                 ss='0'
     else :
