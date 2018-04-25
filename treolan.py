@@ -52,7 +52,8 @@ def getXlsxString(sh, i, in_columns_j):
 
 
 def convert_excel2csv(cfg):
-    csvFName  = cfg.get('basic','filename_out')
+    csvFNameRUR  = cfg.get('basic','filename_out_RUR')
+    csvFNameUSD  = cfg.get('basic','filename_out_USD')
     priceFName= cfg.get('basic','filename_in')
     sheetName = cfg.get('basic','sheetname')
     
@@ -75,9 +76,12 @@ def convert_excel2csv(cfg):
     #    discount[k] = (100 - int(discount[k]))/100
     #print(discount)
 
-    outFile = open( csvFName, 'w', newline='', encoding='CP1251', errors='replace')
-    csvWriter = csv.DictWriter(outFile, fieldnames=out_cols )
-    csvWriter.writeheader()
+    outFileRUR = open( csvFNameRUR, 'w', newline='', encoding='CP1251', errors='replace')
+    outFileUSD = open( csvFNameUSD, 'w', newline='', encoding='CP1251', errors='replace')
+    csvWriterRUR = csv.DictWriter(outFileRUR, fieldnames=out_cols )
+    csvWriterUSD = csv.DictWriter(outFileUSD, fieldnames=out_cols )
+    csvWriterRUR.writeheader()
+    csvWriterUSD.writeheader()
 
     '''                                     # Блок проверки свойств для распознавания групп      XLSX                                  
     for i in range(2393, 2397):                                                         
@@ -142,9 +146,11 @@ def convert_excel2csv(cfg):
 
                 if  float(impValues["цена_usd"]) > 0.0 :
                     recOut["валюта"] = "USD"
+                    csvWriterUSD.writerow(recOut)
                 else:
                     recOut["валюта"] = "РУБ"
-                csvWriter.writerow(recOut)
+                    csvWriterRUR.writerow(recOut)
+                
 
         except Exception as e:
             print(e)
@@ -154,7 +160,8 @@ def convert_excel2csv(cfg):
                 log.debug('Exception: <' + str(e) + '> при обработке строки ' + str(i) +'.' )
 
     log.info('Обработано ' +str(i_last)+ ' строк.')
-    outFile.close()
+    outFileRUR.close()
+    outFileUSD.close()
 
 
 
@@ -366,7 +373,8 @@ def make_loger():
 def processing(cfgFName):
     log.info('----------------------- Processing '+cfgFName )
     cfg = config_read(cfgFName)
-    filename_out = cfg.get('basic','filename_out')
+    filename_out_USD = cfg.get('basic','filename_out_USD')
+    filename_out_RUR = cfg.get('basic','filename_out_RUR')
     filename_in  = cfg.get('basic','filename_in')
     filename_new = cfg.get('download','filename_new')
     
@@ -380,7 +388,8 @@ def processing(cfgFName):
         convert_excel2csv(cfg)
     folderName = os.path.basename(os.getcwd())
     if os.name == 'nt' :
-        if os.path.exists(filename_out)  : shutil.copy2(filename_out , 'c://AV_PROM/prices/' + folderName +'/'+filename_out)
+        if os.path.exists(filename_out_RUR)  : shutil.copy2(filename_out_RUR , 'c://AV_PROM/prices/' + folderName +'/'+filename_out_RUR)
+        if os.path.exists(filename_out_USD)  : shutil.copy2(filename_out_USD , 'c://AV_PROM/prices/' + folderName +'/'+filename_out_USD)
         if os.path.exists('python.log')  : shutil.copy2('python.log',  'c://AV_PROM/prices/' + folderName +'/python.log')
         if os.path.exists('python.log.1'): shutil.copy2('python.log.1','c://AV_PROM/prices/' + folderName +'/python.log.1')
     
